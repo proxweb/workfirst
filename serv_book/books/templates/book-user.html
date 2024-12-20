@@ -1,0 +1,38 @@
+{% extends "base_work.html" %}
+
+{% block title %} Работа с пользователем {% endblock %}
+
+{% block content %}
+    
+    {% if book %}
+    <form method="post">
+        {% csrf_token %}
+        <h1>Проверте !</h1>
+
+        <h3>Пользователь {{user}} вернул - {{book.name_book}}?</h3>
+        <button type="submit" name="Yes_book" value="{{user.id}} {{book.id}}">Да</button>
+        <button type="submit" name="No_book" value="{{user.id}}">Нет</button>
+    </form>
+    {% endif %}
+
+    {% if user and missing_books %}
+        <form method="post">
+            {% csrf_token %}
+            <h2> Пользователь {{user}} </h2>
+
+            <h3>Выберете книги которые будут у пользователя</h3>
+            {% for book in missing_books %}
+                <table border="1">
+                    <tr class="clickable-row" id="row-{{ book.pk }}" onclick="toggleCheckbox({{ book.pk }})">
+                        <td class="hidden-field"><input type="checkbox" id="checkbox-{{ book.pk }}" name="selected_books" value="{{ book.pk }}" class="hidden-checkbox"></td>
+                        <td>{{ book.name_book }}</td>
+                        <td>{{ book.author_book }}</td>
+                    </tr>
+                </table>
+            {% endfor %}
+            <button type="submit" name="Addnewbookuser" value="{{user.id}}">Добавить пользователю</button>
+            <button type="submit" name="No_book" value="{{user.id}}">Назад</button>
+        </form>
+    {% endif %}
+
+    {% endblock %}

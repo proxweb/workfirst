@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock %}</title>
+    <style> 
+        .hidden-field { 
+            display: none; 
+        } 
+        .hidden-checkbox { 
+            display: none; 
+        } 
+        .clickable-row {
+            cursor: pointer; 
+        }
+        .selected {
+            background-color: #c2bff7a2;
+        } 
+        </style>
+</head>
+<body>
+    <H1>Меню навигации</H1>
+    <nav>
+        <a href="/">Главная информация</a> |
+        <a href="/addbook">Книги</a> |
+        <a href="/addusers">Данные пользователей</a> |
+        <a href="/issuance">Карточка получателя книги(книг) для получения книги</a> |
+        <a href="/unissuance">Карточка получателя книги(книг) для возврата книги</a>
+    </nav>
+    <br>
+
+    {% if status %}
+        <h2>{{ status }}</h2>
+    {% endif %}
+
+    {% block content %} {% endblock %}
+    
+    <script> 
+        function toggleCheckbox(bookId) {
+            var checkbox = document.getElementById('checkbox-' + bookId); 
+            var row = document.getElementById('row-' + bookId); 
+            checkbox.checked = !checkbox.checked; 
+            if (checkbox.checked) {
+                row.classList.add('selected'); 
+            } else {
+                row.classList.remove('selected'); 
+            } 
+        } 
+    </script>
+</body>
+</html>

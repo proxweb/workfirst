@@ -1,0 +1,114 @@
+{% extends "base_work.html" %}
+
+{% block title %} Редактирование базы Book {% endblock %}
+
+{% block content %}
+
+    <h1>Редактирование базы книги</h1>
+
+    <!-- Выбор книг для работы  -->
+
+    {% if form_book %}  
+    <form method="post">
+        {% csrf_token %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Книги</th>
+                    <th>Автор</th>
+                    <th>Дата публикации</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in form_book %}
+                    <tr class="clickable-row" id="row-{{ book.pk }}" onclick="toggleCheckbox({{ book.pk }})">
+                        <td class="hidden-field"><input type="checkbox" id="checkbox-{{ book.pk }}" name="selected_books" value="{{ book.pk }}" class="hidden-checkbox"></td>
+                        <td>{{ book.name_book }}</td>
+                        <td>{{ book.author_book }}</td>
+                        <td>{{ book.publis_date }}</td>
+                        <td>{{ book.quantity }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <button type="submit" name="Add_book">Добавить книгу</button>
+        <button type="submit" name="Change_books">Изменить данные книги(книг)</button>
+        <button type="submit" name="Delete_book">Удалить книгу(книги)</button>
+    </form>
+    {% endif %}
+
+    
+    <!-- Форма для удаления книги(книг) -->
+    {% if delform %}
+    <form method="post">
+        {% csrf_token %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Книги</th>
+                    <th>Автор</th>
+                    <th>Дата публикации</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in delform %}
+                    <tr>
+                        <td class="hidden-field"><input type="checkbox" id="checkbox-{{ book.id }}" name="selected_books" value="{{ book.id }}" checked></td>
+                        <td>{{ book.name_book }}</td>
+                        <td>{{ book.author_book }}</td>
+                        <td>{{ book.publis_date }}</td>
+                        <td>{{ book.quantity }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name="Del_books">Удалить книгу(книги)</button>
+        <a href="/addbook"><button>Нет</button></a>
+    </form>
+    {% endif %}
+
+    <!-- Форма для доваление книги -->
+    {% if form %}
+        <form method="post">
+            {% csrf_token %}
+            {% if form %}
+                {{form.as_p }}
+                <button type="submit" name="Save_book">Save</button>
+            {% endif %}
+        </form>
+    {% endif %}
+
+    <!-- Форма для изменения книг -->
+    {% if formset %}
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Книги</th>
+                    <th>Автор</th>
+                    <th>Дата публикации</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                    <tr>
+                        {% for field in form %}
+                            <td class="{% if forloop.last %}hidden-field{% endif %}">
+                                {{ field }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name ='Save_change_books'>Save</button>
+    </form>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %} Main lib {% endblock %}
+
+
+{% block content %}
+
+{% if status and not books and not users %}
+   <h2>{{status}}</h2>
+{% endif %}
+
+
+{% if books %}
+    <h2>Результат по книгам</h2>
+    <form action="{% url 'generate_pdf' %}" method="post">
+        {% csrf_token %}
+        <table border="1"> 
+            <tr>
+                <th>Книги</th>
+                <th>Автор</th>
+                <th>Дата публикации</th>
+                <th>Количество</th>
+                <th>пользователи книг</th>
+                <th>Дата получение пользователем</th>
+                <th>Пользователи которые уже прочтли книгу</th>
+            </tr>
+            {% for book in books %}
+                <tr>
+                    <td><a href="{% url 'book' book.id %}">{{ book.name_book }}</a></td>
+                    <td>{{ book.author_book }}</td>
+                    <td>{{ book.publis_date }}</td>
+                    <td>{{ book.quantity }}</td>
+                    <td> {% for borrower in book.borrowers.all %} 
+                            {{ borrower.firstname }} {{ borrower.lastname }}<br> 
+                        {% empty %} 
+                            Книги нет у пользователей 
+                        {% endfor %} 
+                    </td> 
+                    <td>
+                        {% for book_user in book.book_users.all %}
+                            {{ book_user.received_date }}<br>
+                        {% endfor %} 
+                    </td>
+                    <td> 
+                        {% for book in  book.story %}
+                            {{ book.user }} c {{ book.begin_date }} по {{ book.end_date }}<br>
+                        {% empty %}
+                            Нету причитанных книг за этот период времени
+                        {% endfor %}
+                    </td>
+                    <td class="hidden"><input type="checkbox" id="checkbox-{{ book.id }}" name="selected_books" value="{{ book.id }}" checked></td>
+                </tr>
+            {% endfor %}
+            {% for stor in storybook %}
+                <input class='hidden' type="checkbox" id="checkbox-{{ stor.id }}" name="selected_stors" value="{{ stor.id }}" checked>
+            {% endfor %}
+        </table>
+        <button type="submit" name="Books">Скачать результат поиска</button>
+    </form>
+{% endif %}
+
+
+
+{% if users %}
+    <h2>Результат по пользователям</h2>
+    <form action="{% url 'generate_pdf' %}" method="post">
+        {% csrf_token %}
+        <table border="1"> 
+            <tr>
+                <th>Имя  Фамилия  Отчество</th>
+                <th>Почта</th>
+                <th>Номер телефона</th>
+                <th>Книги</th>
+                <th>Дата получение пользователем по настоящее время</th>
+                <th>Прочитанные книги</th>
+            </tr>
+            {% for user in users %}
+                <tr>
+                    <td><a href="{% url 'user' user.id %}">{{ user.firstname }} {{ user.lastname }} {{ user.patronymic }}</a></td>
+                    <td> {{ user.mailuser }}</td>
+                    <td>{{ user.phone_number }}</td>
+                    <td>
+                    {% for books in user.books.all %}
+                        {{ books.name_book }}<br>
+                    {% endfor %}
+                    </td>
+                    <td> 
+                        {% for book in user.books.all %}
+                            {% for book_user in book.book_users.all %}
+                                {% if user.id == book_user.user.id %}
+                                    {{ book_user.received_date }} <br>
+                                {% endif %}
+                            {% endfor %} 
+                        {% endfor %}
+                    </td>
+                    <td> 
+                        {% for book in  user.story %}
+                            {{ book.book }} c {{ book.begin_date }} по {{ book.end_date }}<br>
+                        {% empty %}
+                            Нету причитанных книг за этот период времени
+                        {% endfor %}
+                    </td>
+                    <td class="hidden"><input type="checkbox" id="checkbox-{{ user.id }}" name="selected_users" value="{{ user.id }}" checked></td>
+                </tr>
+            {% endfor %}
+            {% for stor in storybook %}
+                <input class='hidden' type="checkbox" id="checkbox-{{ stor.id }}" name="selected_stors" value="{{ stor.id }}" checked>
+            {% endfor %}
+        </table>
+        <br>
+        <button type="submit" name="Users">Скачать результат поиска</button>
+    </form>
+{% endif %}
+
+
+{% endblock %}

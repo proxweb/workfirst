@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+    
+{% block title %}Детальная информация{% endblock %}
+
+{% block content %}
+    {% if user and book == false %}
+        <form method="post" action="/process/">
+            {% csrf_token %}
+            <h1>Детальная информация о пользователе</h1>
+            <h1>{{ user }}</h1>
+            <p>Email: {{ user.mailuser }} Номер телефона {{user.phone_number}}</p>
+            
+            <h2>Взятые книги </h2>
+            <ul>
+                {% for book_user in book_users %}
+                    <li>
+                        <b>Книга</b> - {{ book_user.book.name_book }} 
+                        <b>Автор</b> - {{ book_user.book.author_book }}
+                        <b>Дата у пользователя</b> - {{ book_user.received_date }} 
+                        <button type="submit" name ='delbookuser' value="{{user.id}} {{ book_user.book.id }}">Удалить книгу</button>
+                    </li> 
+                {% endfor %} 
+            </ul>
+            <button type="submit" name ='addbookuser' value="{{user.id}}">Добавить книгу</button>
+        </form>
+    {% endif %}
+
+
+    {% if book %}
+
+        <h1>Детальная информация о книги</h1>
+        <h2>Название книги {{ book.name_book }}</h2>
+        <h3>Автор книги - {{book.author_book}} публикация {{book.publis_date }} </h3>
+        
+
+        <h2>Пользователи</h2>
+        <table>
+            <tr>
+                <td>
+                    {% for borrower in book.borrowers.all %} 
+                    <b>Пользователь</b> {{ borrower.firstname }} {{ borrower.lastname }}<br> 
+                    {% endfor %} 
+                </td>
+                <td>
+                    {% for book_user in book.book_users.all %}
+                        <b>Дата</b> {{ book_user.received_date }}<br>
+                    {% endfor %} 
+                </td>
+            </tr>
+        </table>
+    {% endif %}
+{% endblock %}

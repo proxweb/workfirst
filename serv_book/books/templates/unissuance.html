@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %} Выбор пользователя (возврат){% endblock %}
+
+{% block style %} 
+    <style>
+        .user-info {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+  
+    <h1 style="text-align: center;">Карточка получателя книги(книг) для возвращения книги</h1>
+
+    {% if status %}
+        <h2>{{status}}</h2>
+    {% endif %}
+    
+    <fieldset>
+        <legend>Данные пользователя для возвращения книги</legend>
+        <label for="user-select">Выберите получателя:</label>
+        <select id="user-select" onchange="showUserInfo()">
+            <option value="">Выберите пользователя</option>
+            {% for user in user %}
+            <option value="{{user.id}}">{{user}}</option>
+            {% endfor%}
+        </select>
+
+            {% for user in user %}
+            <div class="user-info" id="user-info-{{user.id}}">
+                <h3>{{user}}</h3>
+                <p>Email: {{user.mailuser}}</p>
+                <p>Number: {{user.phone_number}}</p>
+                <h4>Книги у пользователя</h4>
+                <ul>
+                {% for book in user.books.all%}
+                    <li>{{ book }}</li>
+                {% empty %}
+                    <li>У пользователя нет книг</li>
+                {% endfor %}
+                </ul>
+                {% if 0 == user.books.all.count %}
+                    <h2> Пользователь все вернул </h2>
+                {% else %}
+                    <h2>Доступные книги для пользователя</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                            <table border="1">
+                                <thead>
+                                    <tr>
+                                        <th>Книги</th>
+                                        <th>Отмете книгу(книги) для пользователя</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                        {% for book in book %}
+                                            {% if book in user.books.all %}
+                                            <tr>
+                                                <td>{{ book }}</td>
+                                                <td style="text-align: center;"><input type="checkbox" id="checkbox-{{ book.pk }}" name="selected_books" value="{{ book.pk }}"></td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                </tbody>
+                            </table>
+                        <br>
+                        <button type="submit" name="Del_books_user" value="{{ user.id }}">Возврат книги(книг)</button>
+                    </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+    </fieldset>
+
+    <script>
+        function showUserInfo() {
+            // Скрываем всю информацию о пользователях
+            const userInfoElements = document.querySelectorAll('.user-info');
+            userInfoElements.forEach(function(element) {
+                element.style.display = 'none';
+            });
+
+            // Получаем выбранного пользователя
+            const selectedUserId = document.getElementById('user-select').value;
+            if (selectedUserId) {
+                // Показать информацию о выбранном пользователе
+                const selectedUserInfo = document.getElementById('user-info-' + selectedUserId);
+                selectedUserInfo.style.display = 'block';
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %} Main lib {% endblock %}
+
+{% block content %}
+    <H2>Основная информация</H2>
+    
+    <h3>Книги</h3>
+    <table border="1"> 
+        <tr>
+            <th>Книги</th>
+            <th>Автор</th>
+            <th>Дата публикации</th>
+            <th>Количество</th>
+            <th>пользователи книг</th>
+            <th>Дата получение пользователем</th>
+        </tr>
+        {% for book in object_list %}
+            <tr>
+                <td><a href="book/{{book.id}}">{{ book.name_book }}</a></td>
+                <td>{{ book.author_book }}</td>
+                <td>{{ book.publis_date }}</td>
+                <td>{{ book.quantity }}</td>
+                <td> {% for borrower in book.borrowers.all %} 
+                        {{ borrower.firstname }} {{ borrower.lastname }}<br> 
+                    {% empty %} 
+                        Книги нет у пользователей 
+                    {% endfor %} 
+                </td> 
+                <td>
+                    {% for book_user in book.book_users.all %}
+                        {{ book_user.received_date }}<br>
+                    {% endfor %} 
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+<br>
+<h3>Пользователи</h3>
+    <table border="1"> 
+        <tr>
+            <th>Имя  Фамилия  Отчество</th>
+            <th>Почта</th>
+            <th>Номер телефона</th>
+            <th>Книги</th>
+            <th>Дата получение пользователем</th>
+        </tr>
+        {% for user in users %}
+            <tr>
+                <td><a href="user/{{user.id}}">{{ user.firstname }} {{ user.lastname }} {{ user.patronymic }}</a></td>
+                <td> {{ user.mailuser }}</td>
+                <td>{{ user.phone_number }}</td>
+                <td>
+                {% for books in user.books.all %}
+                    {{ books.name_book }}<br>
+                {%endfor%}
+                </td>
+                <td> 
+                    {% for book in user.books.all %}
+                        {% for book_user in book.book_users.all %}
+                            {%if user.id == book_user.user.id%}
+                                {{ book_user.received_date }}<br>
+                            {% endif %}
+                        {% endfor %} 
+                    {%endfor%}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

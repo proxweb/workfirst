@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock %}</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    {% block style %} {% endblock %}
+</head>
+<body>
+
+    <h1>Меню навигации</h1>
+    <nav>
+        <a href="/">Главная информация</a> |
+        <a href="/addbook">Книги</a> |
+        <a href="/addusers">Данные пользователей</a> |
+        <a href="/issuance">Карточка получателя книги(книг) для получения книги</a> |
+        <a href="/unissuance">Карточка получателя книги(книг) для возврата книги</a>
+    </nav>
+    <br>
+
+    {% if form_search %}
+    <form method="post" action="/search/">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Поисковая система сайта</legend>
+            {{ form_search.category.label }}:{{ form_search.category }}
+            <span id="book_cat" class="hidden">
+                {{ form_search.book_cat.label }}:{{ form_search.book_cat }}
+            </span>
+            <span id="user_cat" class="hidden">
+                {{ form_search.user_cat.label }}:{{ form_search.user_cat }}
+            </span>
+            <span id="find_cat">
+                {{ form_search.find_cat_0.label }}:{{ form_search.find_cat_0 }}
+                {{ form_search.text }}
+                <button type="submit">Поиск</button>
+                <br>
+                <button type="button" id="toggle_date_filter_button">Добавить фильтр по дате среди прочтенных книг</button>
+                <div id="date_filters" class="hidden">
+                    <label for="id_date_filter">Выберите тип фильтрации по дате:</label>
+                    <select id="id_date_filter">
+                        <option value="">Выберите тип фильтрации</option>
+                        <option value="date_from">С даты выдачи</option>
+                        <option value="date_to">С даты возврата</option>
+                        <option value="date_period">За период</option>
+                    </select>
+                </div>
+                <span id="date_from_container" class="hidden">
+                    {{ form_search.date_from.label }}:
+                    {{ form_search.date_from }}
+                </span>
+                <span id="date_to_container" class="hidden">
+                    {{ form_search.date_to.label }}:
+                    {{ form_search.date_to }}
+                </span>
+                <br>
+                <button type="button" id="add_filter_button">Добавить дополнительную фильтрацию</button>
+                <div id="additional_filters"></div>
+            </span>
+        </fieldset>
+    </form>
+{% endif %}
+
+{% block content %} {% endblock %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const categorySelect = document.getElementById('id_category');
+        const bookCatContainer = document.getElementById('book_cat');
+        const userCatContainer = document.getElementById('user_cat');
+        const findCatContainer = document.getElementById('find_cat');
+        const addFilterButton = document.getElementById("add_filter_button");
+        const additionalFiltersDiv = document.getElementById("additional_filters");
+        const toggleDateFilterButton = document.getElementById("toggle_date_filter_button");
+        const dateFilters = document.getElementById("date_filters");
+        const dateFromContainer = document.getElementById("date_from_container");
+        const dateToContainer = document.getElementById("date_to_container");
+        const dateFilterSelect = document.getElementById("id_date_filter");
+
+        function toggleFields() {
+            const selectedCategory = categorySelect.value;
+
+            if (selectedCategory === 'Book') {
+                bookCatContainer.classList.remove('hidden');
+                userCatContainer.classList.add('hidden');
+            } else if (selectedCategory === 'UsersBooks') {
+                bookCatContainer.classList.add('hidden');
+                userCatContainer.classList.remove('hidden');
+            } else {
+                bookCatContainer.classList.add('hidden');
+                userCatContainer.classList.add('hidden');
+                findCatContainer.classList.add('hidden');
+            }
+
+            const bookCatSelect = document.getElementById('id_book_cat');
+            const userCatSelect = document.getElementById('id_user_cat');
+
+            if ((bookCatSelect && bookCatSelect.value && categorySelect.value === 'Book') || (userCatSelect && userCatSelect.value && categorySelect.value === 'UsersBooks')) {
+                findCatContainer.classList.remove('hidden');
+            } else {
+                findCatContainer.classList.add('hidden');
+            }
+        }
+
+        categorySelect.addEventListener('change', toggleFields);
+        document.getElementById('id_book_cat').addEventListener('change', toggleFields);
+        document.getElementById('id_user_cat').addEventListener('change', toggleFields);
+
+        let extraFields = 0;
+
+        addFilterButton.addEventListener("click", function(event) {
+            event.preventDefault();
+            if (extraFields < 3) {
+                extraFields++;
+                const nextValue = getNextAvailableValue();
+                const newFilter = document.createElement("div");
+                newFilter.classList.add("filter-field");
+                newFilter.innerHTML = `
+                    <label for="id_find_cat_${extraFields}">Дополнительный тип фильтрации ${extraFields}</label>
+                    <select name="find_cat_${extraFields}" id="id_find_cat_${extraFields}">
+                        ${getOptionsHtml(nextValue)}
+                    </select>
+                    <span class="remove-button" data-index="${extraFields}">❌</span>
+                `;
+                additionalFiltersDiv.appendChild(newFilter);
+
+                newFilter.querySelector(".remove-button").addEventListener("click", function() {
+                    newFilter.remove();
+                    extraFields--;
+                    updateSelectOptions();
+                });
+
+                updateSelectOptions();
+            } else {
+                alert("Вы не можете добавить больше 3 дополнительных фильтров.");
+            }
+        });
+
+        toggleDateFilterButton.addEventListener("click", function(event) {
+            event.preventDefault();
+            if (dateFilters.classList.contains("hidden")) {
+                dateFilters.classList.remove("hidden");
+                toggleDateFilterButton.textContent = "Убрать фильтр по дате среди прочтенных книг";
+            } else {
+                dateFilters.classList.add("hidden");
+                dateFilterSelect.value = "";
+                dateFromContainer.classList.add("hidden");
+                dateToContainer.classList.add("hidden");
+                toggleDateFilterButton.textContent = "Добавить фильтр по дате среди прочтенных книг";
+            }
+        });
+
+        dateFilterSelect.addEventListener("change", function() {
+            const selectedDateFilter = dateFilterSelect.value;
+            dateFromContainer.classList.add("hidden");
+            dateToContainer.classList.add("hidden");
+
+            if (selectedDateFilter === "date_from") {
+                dateFromContainer.classList.remove("hidden");
+            } else if (selectedDateFilter === "date_to") {
+                dateToContainer.classList.remove("hidden");
+            } else if (selectedDateFilter === "date_period") {
+                dateFromContainer.classList.remove("hidden");
+                dateToContainer.classList.remove("hidden");
+            }
+        });
+
+        function getOptionsHtml(selectedValue) {
+            let optionsHtml = '';
+            const availableValues = [
+                {% for value, label in form_search.find_cat_0.field.choices %}
+                { value: "{{ value }}", label: "{{ label }}" },
+                {% endfor %}
+            ];
+            availableValues.forEach(option => {
+                optionsHtml += `<option value="${option.value}" ${selectedValue === option.value ? 'selected' : ''}>${option.label}</option>`;
+            });
+            return optionsHtml;
+        }
+
+        function getNextAvailableValue() {
+            const allSelects = document.querySelectorAll('select');
+            const selectedValues = Array.from(allSelects).map(s => s.value);
+            const availableValues = [
+                {% for value, label in form_search.find_cat_0.field.choices %}
+                "{{ value }}",
+                {% endfor %}
+            ];
+            for (let value of availableValues) {
+                if (!selectedValues.includes(value)) {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function updateSelectOptions() {
+            const allSelects = document.querySelectorAll('select');
+            const selectedValues = Array.from(allSelects).map(s => s.value);
+
+            allSelects.forEach(select => {
+                Array.from(select.options).forEach(option => {
+                    if (selectedValues.includes(option.value) && option.value !== select.value) {
+                        option.disabled = true;
+                    } else {
+                        option.disabled = false;
+                    }
+                });
+            });
+        }
+
+        document.querySelector('form').addEventListener('change', updateSelectOptions);
+
+        toggleFields();
+        updateSelectOptions();
+    });
+</script>
+
+</body>
+</html>

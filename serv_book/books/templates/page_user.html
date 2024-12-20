@@ -1,0 +1,117 @@
+{% extends "base_work.html" %}
+
+{% block title %} Редактирование базы User {% endblock %}
+
+{% block content %}
+
+<h1>Редактирование базы пользователи</h1>
+    <!-- Выбор пользователей для работы  -->
+
+    {% if form_user %}  
+    <form method="post">
+        {% csrf_token %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Отчество</th>
+                    <th>Почта</th>
+                    <th>Номер телефона</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in form_user %}
+                    <tr class="clickable-row" id="row-{{ user.pk }}" onclick="toggleCheckbox({{ user.pk }})">
+                        <td class="hidden-field"><input type="checkbox" id="checkbox-{{ user.pk }}" name="selected_users" value="{{ user.pk }}" class="hidden-checkbox"></td>
+                        <td>{{ user.firstname }}</td>
+                        <td>{{ user.lastname }}</td>
+                        <td>{{ user.patronymic }}</td>
+                        <td>{{ user.mailuser }}</td>
+                        <td>{{ user.phone_number }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <button type="submit" name="Add_user">Добавить пользователя</button>
+        <button type="submit" name="Change_users">Изменить данные пользователя(пользователей)</button>
+        <button type="submit" name="Delete_user">Удалить пользователя(пользователей)</button>
+    </form>
+    {% endif %}
+
+    <!-- Форма для доваление пользователя  -->
+    {% if form %}
+        <form method="post">
+            {% csrf_token %}
+            {% if form %}
+                {{form.as_p }}
+                <button type="submit" name="Save_user">Сохранить</button>
+            {% endif %}
+        </form>
+    {% endif %}
+    
+    <!-- Форма для удаления  -->
+    {% if delform %}
+    <form method="post">
+        {% csrf_token %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Отчество</th>
+                    <th>Почта</th>
+                    <th>Номер телефона</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in delform %}
+                    <tr>
+                        <td class="hidden-field"><input type="checkbox" id="checkbox-{{ user.id }}" name="selected_users" value="{{ user.id }}" checked></td>
+                        <td>{{ user.firstname }}</td>
+                        <td>{{ user.lastname }}</td>
+                        <td>{{ user.patronymic }}</td>
+                        <td>{{ user.mailuser }}</td>
+                        <td>{{ user.phone_number }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name="Del_users">Удалить пользователя(пользователей)</button>
+        <a href="/addusers"><button>Нет</button></a>
+    </form>
+    {% endif %}
+
+    <!-- Форма для изменения -->
+    {% if formset %}
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Отчество</th>
+                    <th>Почта</th>
+                    <th>Номер телефона</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                    <tr>
+                        {% for field in form %}
+                            <td class="{% if forloop.last %}hidden-field{% endif %}">
+                                {{ field }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name ='Save_change_users'>Save</button>
+    </form>
+    {% endif %}
+
+{% endblock %}
